@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookStore - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .sidebar {
+            background-color: #121628;
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            width: 280px;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .nav-link {
+            color: #a0a0a0;
+            padding: 12px 20px;
+            border-radius: 0;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+        }
+
+        .logo {
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+
+        .user-profile {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-info {
+            font-size: 14px;
+            flex-grow: 1;
+        }
+
+        .user-info .name {
+            font-weight: bold;
+        }
+
+        .user-info .email {
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            color: #fff;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .text-success {
+            font-size: 0.9rem;
+        }
+
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .badge.bg-secondary {
+            background-color: #6c757d !important;
+        }
+
+        .table th,
+        .table td {
+            vertical-align: middle;
+        }
+
+        .btn-sm {
+            margin-right: 5px;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .text-danger {
+            color: #dc3545;
+        }
+
+        .table img {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .book-image {
+            width: 50px;
+            height: 70px;
+            margin: 0 auto;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .book-title {
+            font-weight: 500;
+            color: #212529;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .book-category {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        .book-price {
+            font-weight: 500;
+            color: #212529;
+        }
+
+        .stock-warning {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .stock-ok {
+            color: #198754;
+            font-weight: 500;
+        }
+
+        .table-responsive {
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background-color: #fff;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-auto sidebar">
+                <div class="logo d-flex align-items-center">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci11c2VyIj48cGF0aCBkPSJNMjAgMjF2LTJhNCA0IDAgMCAwLTQtNEg4YTQgNCAwIDAgMC00IDR2MiI+PC9wYXRoPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCI+PC9jaXJjbGU+PC9zdmc+"
+                        alt="Logo">
+                    <span>Admin Dashboard</span>
+                </div>
+                <ul class="nav flex-column mt-4">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard}"
+                            th:classappend="${page == 'overview'} ? 'active' : ''">
+                            <i class="bi bi-grid"></i> Tổng quan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard/users}"
+                            th:classappend="${page == 'users'} ? 'active' : ''">
+                            <i class="bi bi-person"></i> Quản lý tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard/books}"
+                            th:classappend="${page == 'books'} ? 'active' : ''">
+                            <i class="bi bi-box"></i> Quản lý sản phẩm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard/inventory}"
+                            th:classappend="${page == 'inventory'} ? 'active' : ''">
+                            <i class="bi bi-archive"></i> Quản lý kho đầu vào
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/dashboard/reports}"
+                            th:classappend="${page == 'reports'} ? 'active' : ''">
+                            <i class="bi bi-bar-chart"></i> Quản lý báo cáo, thống kê
+                        </a>
+                    </li>
+                </ul>
+                <div class="user-profile d-flex align-items-center">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci11c2VyIj48cGF0aCBkPSJNMjAgMjF2LTJhNCA0IDAgMCAwLTQtNEg4YTQgNCAwIDAgMC00IDR2MiI+PC9wYXRoPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCI+PC9jaXJjbGU+PC9zdmc+"
+                        alt="User">
+                    <div class="user-info">
+                        <div class="name" th:text="${username}">User</div>
+                        <div class="email" th:text="${email}">email@example.com</div>
+                    </div>
+                    <a href="/logout" class="logout-btn">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col main-content">
+                <!-- Overview Section -->
+                <div th:if="${page == 'overview'}">
+                    <h2 class="mb-4">Tổng quan</h2>
+                    <div class="row">
+                        <!-- Tổng số sách -->
+                        <div class="col-md-3 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Tổng số sách</h5>
+                                            <h3 th:text="${#numbers.formatInteger(stats.totalBooks, 0, 'COMMA')}">0</h3>
+                                            <p class="text-success">
+                                                <i class="bi bi-arrow-up"></i>
+                                                <span
+                                                    th:text="${#numbers.formatDecimal(stats.bookPercentageChange, 0, 1, 'COMMA')} + '% so với tháng trước'">0%</span>
+                                            </p>
+                                        </div>
+                                        <i class="bi bi-book text-muted" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tổng loại sách -->
+                        <div class="col-md-3 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Tổng loại sách</h5>
+                                            <h3 th:text="${#numbers.formatInteger(stats.totalCategories, 0, 'COMMA')}">0
+                                            </h3>
+                                            <p class="text-success">
+                                                <i class="bi bi-arrow-up"></i>
+                                                <span
+                                                    th:text="${#numbers.formatDecimal(stats.categoryPercentageChange, 0, 1, 'COMMA')} + '% so với tháng trước'">0%</span>
+                                            </p>
+                                        </div>
+                                        <i class="bi bi-list-ul text-muted" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tổng số khách hàng -->
+                        <div class="col-md-3 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Tổng số khách hàng</h5>
+                                            <h3 th:text="${#numbers.formatInteger(stats.totalCustomers, 0, 'COMMA')}">0
+                                            </h3>
+                                            <p class="text-success">
+                                                <i class="bi bi-arrow-up"></i>
+                                                <span
+                                                    th:text="${#numbers.formatDecimal(stats.customerPercentageChange, 0, 1, 'COMMA')} + '% so với tháng trước'">0%</span>
+                                            </p>
+                                        </div>
+                                        <i class="bi bi-people text-muted" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tổng số đơn đặt hàng -->
+                        <div class="col-md-3 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="card-title">Tổng số đơn đặt hàng</h5>
+                                            <h3 th:text="${#numbers.formatInteger(stats.totalOrders, 0, 'COMMA')}">0
+                                            </h3>
+                                            <p class="text-success">
+                                                <i class="bi bi-arrow-up"></i>
+                                                <span
+                                                    th:text="${#numbers.formatDecimal(stats.orderPercentageChange, 0, 1, 'COMMA')} + '% so với tháng trước'">0%</span>
+                                            </p>
+                                        </div>
+                                        <i class="bi bi-cart text-muted" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Management Section -->
+                <div th:if="${page == 'users'}">
+
+                    <!-- Nút thêm tài khoản -->
+                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Quản lý tài khoản</h2>
+                        <a th:href="@{/dashboard/users/add}" class="btn btn-primary"><i class="bi bi-plus"></i> Thêm tài
+                            khoản</a>
+                    </div>
+
+                    <!-- Thống kê nhanh -->
+                    <div class="row mb-4">
+                        <div class="col-md-2">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Quản lý</h6>
+                                    <h4 th:text="${userStats.managers}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Nhân viên</h6>
+                                    <h4 th:text="${userStats.employees}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Khách hàng</h6>
+                                    <h4 th:text="${userStats.customers}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Hoạt động</h6>
+                                    <h4 th:text="${userStats.active}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-title">Tạm khóa</h6>
+                                    <h4 th:text="${userStats.locked}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bộ lọc và tìm kiếm -->
+                    <form th:action="@{/dashboard/users}" method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" name="keyword" th:value="${keyword}"
+                                        placeholder="Tìm kiếm tài khoản theo tên, sdt, email">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="role">
+                                    <option value="" th:selected="${selectedRole == null}">Tất cả loại tài khoản
+                                    </option>
+                                    <option value="Qly" th:selected="${selectedRole == 'Qly'}">Quản lý</option>
+                                    <option value="Nvien" th:selected="${selectedRole == 'Nvien'}">Nhân viên</option>
+                                    <option value="KH" th:selected="${selectedRole == 'KH'}">Khách hàng</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="status">
+                                    <option value="" th:selected="${selectedStatus == null}">Tất cả trạng thái</option>
+                                    <option value="Active" th:selected="${selectedStatus == 'Active'}">Hoạt động
+                                    </option>
+                                    <option value="Lock" th:selected="${selectedStatus == 'Lock'}">Tạm khóa</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Bộ lọc</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Bảng danh sách tài khoản -->
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">Họ tên</th>
+                                <th scope="col">Quyền hạn</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Ngày tạo</th>
+                                <th scope="col">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${users}">
+                                <td th:text="${user.username}">Username</td>
+                                <td th:text="${user.role}">Role</td>
+                                <td>
+                                    <span
+                                        th:class="${user.status == 'Active' ? 'badge bg-success' : 'badge bg-warning'}"
+                                        th:text="${user.status}">Status</span>
+                                </td>
+                                <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">Created Date</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary"
+                                        th:onclick="'editUser(' + ${user.id} + ')'" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning"
+                                        th:onclick="'toggleUserStatus(' + ${user.id} + ')'"
+                                        th:title="${user.status == 'Active' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}">
+                                        <i class="bi bi-lock"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info"
+                                        th:onclick="'viewUserDetails(' + ${user.id} + ')'" title="Xem chi tiết">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination Controls -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            Hiển thị <span th:text="${users.size()}">0</span> / <span th:text="${totalItems}">0</span>
+                            tài khoản
+                        </div>
+                        <nav th:if="${totalPages > 1}">
+                            <ul class="pagination mb-0">
+                                <!-- Previous page -->
+                                <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/dashboard/users(page=${currentPage - 1}, keyword=${keyword}, role=${selectedRole}, status=${selectedStatus})}"
+                                        aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+
+                                <!-- First page -->
+                                <li class="page-item" th:classappend="${currentPage == 1} ? 'active'">
+                                    <a class="page-link"
+                                        th:href="@{/dashboard/users(page=1, keyword=${keyword}, role=${selectedRole}, status=${selectedStatus})}">1</a>
+                                </li>
+
+                                <!-- Ellipsis if needed -->
+                                <li class="page-item disabled" th:if="${currentPage > 3}">
+                                    <span class="page-link">...</span>
+                                </li>
+
+                                <!-- Pages around current -->
+                                <li class="page-item"
+                                    th:each="page : ${#numbers.sequence(currentPage > 2 ? currentPage - 1 : 2, 
+                                                                                          currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1)}"
+                                    th:classappend="${page == currentPage} ? 'active'">
+                                    <a class="page-link"
+                                        th:href="@{/dashboard/users(page=${page}, keyword=${keyword}, role=${selectedRole}, status=${selectedStatus})}"
+                                        th:text="${page}">2</a>
+                                </li>
+
+                                <!-- Ellipsis if needed -->
+                                <li class="page-item disabled" th:if="${currentPage < totalPages - 2}">
+                                    <span class="page-link">...</span>
+                                </li>
+
+                                <!-- Last page -->
+                                <li class="page-item" th:if="${totalPages > 1}"
+                                    th:classappend="${currentPage == totalPages} ? 'active'">
+                                    <a class="page-link"
+                                        th:href="@{/dashboard/users(page=${totalPages}, keyword=${keyword}, role=${selectedRole}, status=${selectedStatus})}"
+                                        th:text="${totalPages}">Last</a>
+                                </li>
+
+                                <!-- Next page -->
+                                <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                                    <a class="page-link"
+                                        th:href="@{/dashboard/users(page=${currentPage + 1}, keyword=${keyword}, role=${selectedRole}, status=${selectedStatus})}"
+                                        aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                    <!-- Modal Edit User -->
+                    <div class="modal fade" id="editUserModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Chỉnh sửa thông tin tài khoản</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="editUserForm">
+                                        <input type="hidden" id="editUserId" name="id">
+                                        <div class="mb-3">
+                                            <label for="editUsername" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="editUsername" name="username"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editPassword" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="editPassword"
+                                                name="password" placeholder="Để trống nếu không muốn thay đổi">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editRole" class="form-label">Quyền hạn</label>
+                                            <select class="form-select" id="editRole" name="role" required>
+                                                <option value="Qly">Quản lý</option>
+                                                <option value="Nvien">Nhân viên</option>
+                                                <option value="KH">Khách hàng</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="editEmail" name="email"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editPhone" class="form-label">Số điện thoại</label>
+                                            <input type="tel" class="form-control" id="editPhone" name="phone">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="editAddress" class="form-label">Địa chỉ</label>
+                                            <textarea class="form-control" id="editAddress" name="address"
+                                                rows="3"></textarea>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Đóng</button>
+                                    <button type="button" class="btn btn-primary" onclick="saveUserChanges()">Lưu thay
+                                        đổi</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal User Details -->
+                    <div class="modal fade" id="userDetailsModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Chi tiết tài khoản</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <th width="30%">ID:</th>
+                                            <td id="detailUserId"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Username:</th>
+                                            <td id="detailUsername"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Quyền hạn:</th>
+                                            <td id="detailRole"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Email:</th>
+                                            <td id="detailEmail"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Số điện thoại:</th>
+                                            <td id="detailPhone"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Địa chỉ:</th>
+                                            <td id="detailAddress"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Trạng thái:</th>
+                                            <td id="detailStatus"></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Ngày tạo:</th>
+                                            <td id="detailCreatedAt"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Đóng</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add User Form Section -->
+                <div th:if="${page == 'add-user'}">
+                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Thêm tài khoản mới</h2>
+                        <a th:href="@{/dashboard/users}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay
+                            lại</a>
+                    </div>
+
+                    <!-- Hiển thị thông báo lỗi hoặc thành công -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span th:text="${success}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Form thêm tài khoản -->
+                    <form th:action="@{/dashboard/users/add}" th:object="${newUser}" method="post" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="username" class="form-label">Tên người dùng <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="username" th:field="*{username}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="role" class="form-label">Quyền hạn <span class="text-danger">*</span></label>
+                            <select class="form-select" id="role" th:field="*{role}" required>
+                                <option value="" disabled selected>Chọn quyền hạn</option>
+                                <option value="Qly">Quản lý</option>
+                                <option value="Nvien">Nhân viên</option>
+                                <option value="KH">Khách hàng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="phone" th:field="*{phone}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="address" class="form-label">Địa chỉ</label>
+                            <textarea class="form-control" id="address" th:field="*{address}" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Thêm tài khoản</button>
+                            <a th:href="@{/dashboard/users}" class="btn btn-secondary">Hủy</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Books Management Section -->
+                <div th:if="${page == 'books'}">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Quản lý sản phẩm</h2>
+        <div>
+            <a th:href="@{/dashboard/books/add-category}" class="btn btn-primary me-2">
+                <i class="bi bi-plus"></i> Thêm loại sách
+            </a>
+            <a th:href="@{/dashboard/books/add}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> Thêm sản phẩm
+            </a>
+        </div>
+    </div>
+
+    <!-- Bộ lọc và tìm kiếm -->
+    <form th:action="@{/dashboard/books}" method="get" class="mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="keyword" th:value="${keyword}"
+                        placeholder="Tìm kiếm sản phẩm theo tên">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="categoryId">
+                    <option value="" th:selected="${selectedCategoryId == null}">Tất cả thể loại</option>
+                    <option th:each="category : ${categories}" 
+                            th:value="${category.id}"
+                            th:text="${category.categoryName}"
+                            th:selected="${selectedCategoryId == category.id}">
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="sortBy">
+                    <option value="" th:selected="${selectedSortBy == null}">Sắp xếp theo giá</option>
+                    <option value="priceAsc" th:selected="${selectedSortBy == 'priceAsc'}">Giá: Thấp đến cao</option>
+                    <option value="priceDesc" th:selected="${selectedSortBy == 'priceDesc'}">Giá: Cao đến thấp</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="stockStatus">
+                    <option value="" th:selected="${selectedStockStatus == null}">Tình trạng kho</option>
+                    <option value="InStock" th:selected="${selectedStockStatus == 'InStock'}">Còn hàng</option>
+                    <option value="OutOfStock" th:selected="${selectedStockStatus == 'OutOfStock'}">Hết hàng</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Áp dụng bộ lọc</button>
+                <a th:href="@{/dashboard/books}" class="btn btn-secondary">Đặt lại</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Bảng danh sách sách -->
+    <div class="table-responsive">
+        <div th:if="${#lists.isEmpty(books)}" class="alert alert-info">
+            Không tìm thấy sách nào phù hợp với điều kiện tìm kiếm
+        </div>
+        <table th:if="${not #lists.isEmpty(books)}" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Ảnh</th>
+                    <th>Tên sách</th>
+                    <th>Thể loại</th>
+                    <th>Tác giả</th>
+                    <th>Giá bán</th>
+                    <th>Số lượng tồn</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="book : ${books}">
+                    <td class="text-center">
+                        <div class="book-image">
+                            <img th:src="${@bookService.getPrimaryImageUrl(book.id)}"
+                                 alt="Book Cover"
+                                 class="book-cover">
+                        </div>
+                    </td>
+                    <td>
+                        <span class="book-title" th:text="${book.title}">Book Title</span>
+                    </td>
+                    <td>
+                        <span class="book-category" th:text="${book.category != null ? book.category.categoryName : 'N/A'}">Category</span>
+                    </td>
+                    <td th:text="${book.author}">Author</td>
+                    <td>
+                        <span class="book-price" th:text="${#numbers.formatInteger(book.price, 0, 'COMMA')} + 'đ'">Price</span>
+                    </td>
+                    <td>
+                        <span th:text="${book.stockQuantity}"
+                              th:class="${book.stockQuantity > 0 ? 'stock-ok' : 'stock-warning'}">
+                            Stock
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{/dashboard/books/edit(id=${book.id})}" 
+                           class="btn btn-sm btn-outline-primary me-1" 
+                           title="Chỉnh sửa">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a th:href="@{/dashboard/books/details(id=${book.id})}" 
+                           class="btn btn-sm btn-outline-info"
+                           title="Xem chi tiết">
+                            <i class="bi bi-info-circle"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    <div th:if="${not #lists.isEmpty(books)}" class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            Hiển thị <span th:text="${books.size()}"></span> trên tổng số <span th:text="${totalItems}"></span> sản phẩm
+        </div>
+        <nav th:if="${totalPages > 1}">
+            <ul class="pagination mb-0">
+                <li class="page-item" th:class="${currentPage == 1} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/dashboard/books(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword}, categoryId=${selectedCategoryId}, stockStatus=${selectedStockStatus}, sortBy=${selectedSortBy})}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                    th:class="${i == currentPage} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/dashboard/books(page=${i}, size=${pageSize}, keyword=${keyword}, categoryId=${selectedCategoryId}, stockStatus=${selectedStockStatus}, sortBy=${selectedSortBy})}"
+                       th:text="${i}">
+                    </a>
+                </li>
+                <li class="page-item" th:class="${currentPage == totalPages} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/dashboard/books(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword}, categoryId=${selectedCategoryId}, stockStatus=${selectedStockStatus}, sortBy=${selectedSortBy})}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+                <!-- Inventory Management Section -->
+                <div th:if="${page == 'inventory'}">
+                    <h2 class="mb-4">Quản lý kho đầu vào</h2>
+                    <div class="alert alert-info">
+                        Tính năng "Quản lý kho đầu vào" đang được thiết kế...
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div th:if="${page == 'reports'}">
+                    <h2 class="mb-4">Quản lý báo cáo, thống kê</h2>
+                    <div class="alert alert-info">
+                        Tính năng "Quản lý báo cáo, thống kê" đang được thiết kế...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        function editUser(userId) {
+            fetch(`/api/users/${userId}`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('editUserId').value = user.id;
+                    document.getElementById('editUsername').value = user.username;
+                    document.getElementById('editRole').value = user.role;
+                    document.getElementById('editEmail').value = user.email;
+                    document.getElementById('editPhone').value = user.phone || '';
+                    document.getElementById('editAddress').value = user.address || '';
+                    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+                });
+        }
+
+        function saveUserChanges() {
+            const formData = new FormData(document.getElementById('editUserForm'));
+            const userData = Object.fromEntries(formData.entries());
+
+            fetch(`/api/users/${userData.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+        }
+
+        function toggleUserStatus(userId) {
+            if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái của tài khoản này?')) {
+                fetch(`/api/users/${userId}/toggle-status`, {
+                    method: 'PUT'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            throw new Error('Failed to toggle user status');
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error: ' + error.message);
+                    });
+            }
+        }
+
+        function viewUserDetails(userId) {
+            fetch(`/api/users/${userId}`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('detailUserId').textContent = user.id;
+                    document.getElementById('detailUsername').textContent = user.username;
+                    document.getElementById('detailRole').textContent = user.role;
+                    document.getElementById('detailEmail').textContent = user.email;
+                    document.getElementById('detailPhone').textContent = user.phone || 'N/A';
+                    document.getElementById('detailAddress').textContent = user.address || 'N/A';
+                    document.getElementById('detailStatus').textContent = user.status;
+                    document.getElementById('detailCreatedAt').textContent = new Date(user.createdAt).toLocaleString();
+                    new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
+                });
+        }
+    </script>
+</body>
+
+</html>

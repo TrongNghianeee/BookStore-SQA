@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm - Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .sidebar {
+            background-color: #121628;
+            color: white;
+            min-height: 100vh;
+            position: fixed;
+            width: 280px;
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .nav-link {
+            color: #a0a0a0;
+            padding: 12px 20px;
+            border-radius: 0;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .nav-link i {
+            margin-right: 10px;
+        }
+        .logo {
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        .user-profile {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .user-info {
+            font-size: 14px;
+        }
+        .user-info .name {
+            font-weight: bold;
+        }
+        .user-info .email {
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+        .add-button {
+            background-color: #121628;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-left: 10px;
+        }
+        .add-button:hover {
+            background-color: #1a1f3a;
+            color: white;
+        }
+        .search-bar {
+            position: relative;
+        }
+        .search-bar input {
+            padding-left: 40px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 12px;
+            color: #6c757d;
+        }
+        .filter-button {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px 16px;
+            color: #212529;
+            text-align: left;
+        }
+        .filter-button i {
+            float: right;
+            margin-top: 5px;
+        }
+        .table-header {
+            background-color: #f8f9fa;
+        }
+        .book-cover {
+            width: 60px;
+            height: 80px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        .action-icon {
+            color: #495057;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .pagination {
+            justify-content: center;
+        }
+        .page-item.active .page-link {
+            background-color: #121628;
+            border-color: #121628;
+        }
+        .page-link {
+            color: #121628;
+        }
+        .filter-container {
+            display: flex;
+            gap: 15px;
+        }
+        .filter-dropdown {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-auto sidebar">
+                <div class="logo d-flex align-items-center">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci11c2VyIj48cGF0aCBkPSJNMjAgMjF2LTJhNCA0IDAgMCAwLTQtNEg4YTQgNCAwIDAgMC00IDR2MiI+PC9wYXRoPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCI+PC9jaXJjbGU+PC9zdmc+" alt="Logo">
+                    <span>Admin Dashboard</span>
+                </div>
+                <ul class="nav flex-column mt-4">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-grid"></i> Tổng quan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="account-management.html">
+                            <i class="bi bi-person"></i> Quản lý tài khoản
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="product-management.html">
+                            <i class="bi bi-box"></i> Quản lý sản phẩm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-archive"></i> Quản lý kho đầu vào
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-bar-chart"></i> Quản lý báo cáo, thống kê
+                        </a>
+                    </li>
+                </ul>
+                <div class="user-profile d-flex align-items-center">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci11c2VyIj48cGF0aCBkPSJNMjAgMjF2LTJhNCA0IDAgMCAwLTQtNEg4YTQgNCAwIDAgMC00IDR2MiI+PC9wYXRoPjxjaXJjbGUgY3g9IjEyIiBjeT0iNyIgcj0iNCI+PC9jaXJjbGU+PC9zdmc+" alt="User">
+                    <div class="user-info">
+                        <div class="name">Admin User</div>
+                        <div class="email">admin@example.com</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Quản lý sản phẩm</h2>
+                    <div>
+                        <a href="#" class="add-button">
+                            <i class="bi bi-plus"></i> Thêm loại sách
+                        </a>
+                        <a href="#" class="add-button">
+                            <i class="bi bi-plus"></i> Thêm sản phẩm
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="search-bar">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm theo tên">
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="filter-button">
+                            Bộ lọc <i class="bi bi-funnel"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Filter Options -->
+                <div class="filter-container mb-4">
+                    <div class="filter-dropdown">
+                        <div class="dropdown">
+                            <button class="filter-button w-100 dropdown-toggle" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Tất cả thể loại <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
+                                <li><a class="dropdown-item" href="#">Tất cả thể loại</a></li>
+                                <li><a class="dropdown-item" href="#">Tâm lý - Kỹ năng sống</a></li>
+                                <li><a class="dropdown-item" href="#">Văn học</a></li>
+                                <li><a class="dropdown-item" href="#">Kinh tế</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="filter-dropdown">
+                        <div class="dropdown">
+                            <button class="filter-button w-100 dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Sắp xếp theo giá <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                                <li><a class="dropdown-item" href="#">Sắp xếp theo giá</a></li>
+                                <li><a class="dropdown-item" href="#">Giá tăng dần</a></li>
+                                <li><a class="dropdown-item" href="#">Giá giảm dần</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="filter-dropdown">
+                        <div class="dropdown">
+                            <button class="filter-button w-100 dropdown-toggle" type="button" id="stockDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Tình trạng kho <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="stockDropdown">
+                                <li><a class="dropdown-item" href="#">Tất cả</a></li>
+                                <li><a class="dropdown-item" href="#">Còn hàng</a></li>
+                                <li><a class="dropdown-item" href="#">Hết hàng</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Products Table -->
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="table-header">
+                            <tr>
+                                <th scope="col">Ảnh</th>
+                                <th scope="col">Tên sách</th>
+                                <th scope="col">Giá bán</th>
+                                <th scope="col">Số lượng tồn</th>
+                                <th scope="col">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="book-cover">
+                                        Book<br>Cover
+                                    </div>
+                                </td>
+                                <td>Đắc Nhân Tâm</td>
+                                <td>120.000đ</td>
+                                <td>50</td>
+                                <td>
+                                    <i class="bi bi-pencil-square action-icon"></i>
+                                    <i class="bi bi-info-circle action-icon"></i>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="book-cover">
+                                        Book<br>Cover
+                                    </div>
+                                </td>
+                                <td>Nhà Giả Kim</td>
+                                <td>90.000đ</td>
+                                <td>0</td>
+                                <td>
+                                    <i class="bi bi-pencil-square action-icon"></i>
+                                    <i class="bi bi-info-circle action-icon"></i>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Hiển thị 1-2 trên tổng số 8 sản phẩm
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
