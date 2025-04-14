@@ -1,9 +1,13 @@
 package com.example.bookstore.controller;
 
 import com.example.bookstore.model.Book;
+import com.example.bookstore.model.Category;
 import com.example.bookstore.model.User;
+import com.example.bookstore.model.BookImage;
+import com.example.bookstore.model.InventoryTransaction;
 import com.example.bookstore.service.BookService;
 import com.example.bookstore.service.DashboardService;
+import com.example.bookstore.service.InventoryService;
 import com.example.bookstore.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -30,7 +36,10 @@ public class DashboardController {
     private UserService userService;
 
     @Autowired
-    private BookService bookService; // Thêm BookService
+    private BookService bookService;
+
+    @Autowired
+    private InventoryService inventoryService;
 
     @GetMapping
     public String dashboard(HttpSession session, Model model) {
@@ -199,7 +208,6 @@ public class DashboardController {
         return "dashboard";
     }
 
-    // Khai báo endpoint cho nút "Thêm loại sách"
     @GetMapping("/books/add-category")
     public String showAddCategoryForm(HttpSession session, Model model) {
         if (!isAuthorized(session)) {
@@ -211,10 +219,39 @@ public class DashboardController {
         model.addAttribute("role", user.getRole());
         model.addAttribute("email", user.getEmail());
         model.addAttribute("page", "add-category");
+
+        // Thêm đối tượng Category mới vào model
+        model.addAttribute("newCategory", new Category());
+
         return "dashboard";
     }
 
-    // Khai báo endpoint cho nút "Thêm sản phẩm"
+    @PostMapping("/books/add-category")
+    public String addCategory(
+            @ModelAttribute("newCategory") Category newCategory,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        if (!isAuthorized(session)) {
+            return "redirect:/login";
+        }
+
+        // Kiểm tra dữ liệu đầu vào
+        if (newCategory.getCategoryName() == null || newCategory.getCategoryName().trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập tên loại sách!");
+            return "redirect:/dashboard/books/add-category";
+        }
+
+        try {
+            // Lưu loại sách mới
+            bookService.saveCategory(newCategory);
+            redirectAttributes.addFlashAttribute("success", "Thêm loại sách thành công!");
+            return "redirect:/dashboard/books";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi thêm loại sách. Vui lòng thử lại!");
+            return "redirect:/dashboard/books/add-category";
+        }
+    }
+
     @GetMapping("/books/add")
     public String showAddBookForm(HttpSession session, Model model) {
         if (!isAuthorized(session)) {
@@ -226,15 +263,75 @@ public class DashboardController {
         model.addAttribute("role", user.getRole());
         model.addAttribute("email", user.getEmail());
         model.addAttribute("page", "add-book");
+
+        // Thêm đối tượng Book mới vào model
+        Book newBook = new Book();
+        newBook.setStockQuantity(0); // Đặt số lượng mặc định là 0
+        model.addAttribute("newBook", newBook);
+
+        // Lấy danh sách các loại sách để hiển thị trong form
+        model.addAttribute("categories", bookService.getAllCategories());
+
         return "dashboard";
     }
 
-    // Khai báo endpoint cho nút "Chỉnh sửa"
+    @PostMapping("/books/add")
+    public String addBook(
+            @ModelAttribute("newBook") Book newBook,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        if (!isAuthorized(session)) {
+            return "redirect:/login";
+        }
+
+        // Kiểm tra dữ liệu đầu vào
+        if (newBook.getTitle() == null || newBook.getTitle().trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập tiêu đề sách!");
+            redirectAttributes.addFlashAttribute("newBook", newBook);
+            return "redirect:/dashboard/books/add";
+        }
+
+        if (newBook.getAuthor() == null || newBook.getAuthor().trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập tên tác giả!");
+            redirectAttributes.addFlashAttribute("newBook", newBook);
+            return "redirect:/dashboard/books/add";
+        }
+
+        if (newBook.getCategory() == null || newBook.getCategory().getId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng chọn thể loại sách!");
+            redirectAttributes.addFlashAttribute("newBook", newBook);
+            return "redirect:/dashboard/books/add";
+        }
+
+        if (newBook.getPrice() == null || newBook.getPrice() <= 0) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập giá hợp lệ!");
+            redirectAttributes.addFlashAttribute("newBook", newBook);
+            return "redirect:/dashboard/books/add";
+        }
+
+        // Đặt mặc định số lượng là 0 nếu không nhập
+        if (newBook.getStockQuantity() == null) {
+            newBook.setStockQuantity(0);
+        }
+
+        try {
+            // Lưu sách mới
+            bookService.saveBook(newBook);
+            redirectAttributes.addFlashAttribute("success", "Thêm sách thành công!");
+            return "redirect:/dashboard/books";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi thêm sách. Vui lòng thử lại!");
+            redirectAttributes.addFlashAttribute("newBook", newBook);
+            return "redirect:/dashboard/books/add";
+        }
+    }
+
     @GetMapping("/books/edit")
     public String showEditBookForm(
             @RequestParam("id") Integer bookId,
             HttpSession session,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (!isAuthorized(session)) {
             return "redirect:/login";
         }
@@ -244,16 +341,81 @@ public class DashboardController {
         model.addAttribute("role", user.getRole());
         model.addAttribute("email", user.getEmail());
         model.addAttribute("page", "edit-book");
-        model.addAttribute("bookId", bookId);
+
+        // Lấy thông tin sách cần chỉnh sửa
+        Book book = bookService.getBookById(bookId);
+        if (book == null) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy sách với ID: " + bookId);
+            return "redirect:/dashboard/books";
+        }
+
+        model.addAttribute("editBook", book);
+
+        // Lấy danh sách các loại sách để hiển thị trong form
+        model.addAttribute("categories", bookService.getAllCategories());
+
         return "dashboard";
     }
 
-    // Khai báo endpoint cho nút "Xem chi tiết"
+    @PostMapping("/books/edit")
+    public String editBook(
+            @ModelAttribute("editBook") Book editBook,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        if (!isAuthorized(session)) {
+            return "redirect:/login";
+        }
+
+        // Kiểm tra dữ liệu đầu vào
+        if (editBook.getTitle() == null || editBook.getTitle().trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập tiêu đề sách!");
+            return "redirect:/dashboard/books/edit?id=" + editBook.getId();
+        }
+
+        if (editBook.getAuthor() == null || editBook.getAuthor().trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập tên tác giả!");
+            return "redirect:/dashboard/books/edit?id=" + editBook.getId();
+        }
+
+        if (editBook.getCategory() == null || editBook.getCategory().getId() == null) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng chọn thể loại sách!");
+            return "redirect:/dashboard/books/edit?id=" + editBook.getId();
+        }
+
+        if (editBook.getPrice() == null || editBook.getPrice() <= 0) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng nhập giá hợp lệ!");
+            return "redirect:/dashboard/books/edit?id=" + editBook.getId();
+        }
+
+        // Đảm bảo số lượng không âm
+        if (editBook.getStockQuantity() == null || editBook.getStockQuantity() < 0) {
+            editBook.setStockQuantity(0);
+        }
+
+        try {
+            // Lấy thông tin sách hiện tại từ database
+            Book existingBook = bookService.getBookById(editBook.getId());
+            if (existingBook == null) {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy sách với ID: " + editBook.getId());
+                return "redirect:/dashboard/books";
+            }
+
+            // Cập nhật sách
+            bookService.updateBook(editBook);
+            redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin sách thành công!");
+            return "redirect:/dashboard/books";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi cập nhật sách: " + e.getMessage());
+            return "redirect:/dashboard/books/edit?id=" + editBook.getId();
+        }
+    }
+
     @GetMapping("/books/details")
     public String showBookDetails(
             @RequestParam("id") Integer bookId,
             HttpSession session,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (!isAuthorized(session)) {
             return "redirect:/login";
         }
@@ -263,7 +425,24 @@ public class DashboardController {
         model.addAttribute("role", user.getRole());
         model.addAttribute("email", user.getEmail());
         model.addAttribute("page", "book-details");
-        model.addAttribute("bookId", bookId);
+
+        // Lấy thông tin chi tiết sách
+        Book book = bookService.getBookById(bookId);
+        if (book == null) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy sách với ID: " + bookId);
+            return "redirect:/dashboard/books";
+        }
+
+        // Lấy URL ảnh chính cho sách
+        String imageUrl = bookService.getPrimaryImageUrl(bookId);
+        book.setImageUrl(imageUrl);
+
+        model.addAttribute("bookDetails", book);
+
+        // Lấy danh sách ảnh của sách (nếu có)
+        List<BookImage> bookImages = bookService.getBookImages(bookId);
+        model.addAttribute("bookImages", bookImages);
+
         return "dashboard";
     }
 
@@ -278,6 +457,112 @@ public class DashboardController {
         model.addAttribute("role", user.getRole());
         model.addAttribute("email", user.getEmail());
         model.addAttribute("page", "inventory");
+
+        // Add empty inventory transaction object to model
+        InventoryTransaction newTransaction = new InventoryTransaction();
+        newTransaction.setBook(new Book());
+        model.addAttribute("inventoryTransaction", newTransaction);
+
+        // Add categories for category dropdown
+        model.addAttribute("categories", bookService.getAllCategories());
+
+        // Get recent transactions for display
+        List<InventoryTransaction> recentTransactions = inventoryService.getRecentTransactions(10);
+        model.addAttribute("recentTransactions", recentTransactions);
+
+        // Get total transactions count
+        long totalTransactions = inventoryService.getTotalTransactionsCount();
+        model.addAttribute("totalTransactions", totalTransactions);
+
+        return "dashboard";
+    }
+
+    @PostMapping("/inventory/transaction")
+    public String processInventoryTransaction(
+            @ModelAttribute("inventoryTransaction") InventoryTransaction transaction,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        if (!isAuthorized(session)) {
+            return "redirect:/login";
+        }
+
+        User user = (User) session.getAttribute("user");
+
+        try {
+            // Validate the transaction
+            if (transaction.getBook() == null || transaction.getBook().getId() == null) {
+                redirectAttributes.addFlashAttribute("error", "Vui lòng chọn sách!");
+                return "redirect:/dashboard/inventory";
+            }
+
+            if (transaction.getQuantity() == null || transaction.getQuantity() <= 0) {
+                redirectAttributes.addFlashAttribute("error", "Số lượng phải lớn hơn 0!");
+                return "redirect:/dashboard/inventory";
+            }
+
+            if (transaction.getPriceAtTransaction() == null || transaction.getPriceAtTransaction().doubleValue() <= 0) {
+                redirectAttributes.addFlashAttribute("error", "Giá phải lớn hơn 0!");
+                return "redirect:/dashboard/inventory";
+            }
+
+            if (transaction.getTransactionType() == null || transaction.getTransactionType().trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Vui lòng chọn phương thức nhập/xuất kho!");
+                return "redirect:/dashboard/inventory";
+            }
+
+            // Set the current user and transaction date
+            transaction.setUser(user);
+            transaction.setTransactionDate(LocalDateTime.now());
+
+            // Process and save the transaction
+            inventoryService.processTransaction(transaction);
+
+            redirectAttributes.addFlashAttribute("success", "Giao dịch " +
+                    (transaction.getTransactionType().equals("IMPORT") ? "nhập kho" : "xuất kho") +
+                    " đã được lưu thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/dashboard/inventory";
+    }
+
+    @GetMapping("/inventory/transactions")
+    public String viewAllTransactions(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            Model model,
+            HttpSession session) {
+
+        if (!isAuthorized(session)) {
+            return "redirect:/login";
+        }
+
+        // Phân trang với kích thước trang là 20
+        int pageSize = 20;
+
+        // Filter transactions by type and date range
+        Page<InventoryTransaction> transactionsPage = inventoryService.getTransactionsPaginated(page - 1, pageSize,
+                type, fromDate, toDate);
+
+        model.addAttribute("transactions", transactionsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", transactionsPage.getTotalPages());
+        model.addAttribute("totalItems", transactionsPage.getTotalElements());
+
+        // Add filter values to model to maintain state in the view
+        model.addAttribute("selectedType", type);
+        model.addAttribute("fromDate", fromDate);
+        model.addAttribute("toDate", toDate);
+
+        // User info for navbar
+        User user = (User) session.getAttribute("user");
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("email", user.getEmail());
+
+        model.addAttribute("page", "inventory-transactions");
         return "dashboard";
     }
 

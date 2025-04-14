@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "Inventory_Transactions")
 public class InventoryTransaction {
+
+    public static final String TYPE_IMPORT = "Nhập";
+    public static final String TYPE_EXPORT = "Xuất";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "transaction_id")
