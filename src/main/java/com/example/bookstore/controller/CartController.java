@@ -3,6 +3,7 @@ package com.example.bookstore.controller;
 import com.example.bookstore.model.CartItem;
 import com.example.bookstore.model.User;
 import com.example.bookstore.service.CartService;
+import com.example.bookstore.service.InventoryService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class CartController {
 
     @Autowired
     private CartService cartService;
+
+    @Autowired
+    private InventoryService inventoryService;
 
     @GetMapping("/cart")
     public String viewCart(HttpSession session, Model model) {
@@ -182,6 +186,55 @@ public class CartController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Có lỗi xảy ra, vui lòng thử lại sau");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping("/api/cart/checkout")
+    public ResponseEntity<Map<String, Object>> checkout(
+            @RequestParam(required = false) String shippingAddress,
+            @RequestParam(required = false) String paymentMethod,
+            HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "Vui lòng đăng nhập để thanh toán");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // Nếu không nhập địa chỉ giao hàng, sử dụng địa chỉ của người dùng
+            if (shippingAddress == null || shippingAddress.isEmpty()) {
+                shippingAddress = user.getAddress();
+            }
+
+            // Nếu không chọn phương thức thanh toán, mặc định là "Tiền mặt khi nhận hàng"
+            if (paymentMethod == null || paymentMethod.isEmpty()) {
+                paymentMethod = "Tiền mặt khi nhận hàng";
+            }
+
+            // Gọi service để xử lý thanh toán và tạo các giao dịch xuất kho
+            boolean checkoutSuccess = cartService.checkout(user.getId(), shippingAddress, paymentMethod);
+
+            if (checkoutSuccess) {
+                response.put("success", true);
+                response.put("message", "Đặt hàng thành công!");
+                response.put("cartItemCount", 0); // Giỏ hàng đã bị xóa sau khi thanh toán
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Đặt hàng không thành công, vui lòng thử lại sau");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Có lỗi xảy ra, vui lòng thử lại sau: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

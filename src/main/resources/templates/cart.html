@@ -69,6 +69,30 @@
             padding: 20px 0;
             margin-top: 50px;
         }
+
+        /* CSS cho modal thanh toán */
+        .payment-option {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .payment-option:hover {
+            border-color: #0d6efd;
+        }
+        
+        .payment-option.selected {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        
+        .payment-option-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -220,6 +244,84 @@
         </div>
     </div>
 
+    <!-- Checkout Modal -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="checkoutModalLabel">Xác nhận đặt hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Địa chỉ giao hàng</h6>
+                            <div class="mb-3">
+                                <textarea id="shippingAddress" class="form-control" rows="3" placeholder="Nhập địa chỉ giao hàng"></textarea>
+                                <small class="form-text text-muted">Nếu để trống, hệ thống sẽ sử dụng địa chỉ trong tài khoản của bạn.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Phương thức thanh toán</h6>
+                            <div class="payment-option selected" data-method="Tiền mặt khi nhận hàng" onclick="selectPaymentOption(this)">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-cash payment-option-icon text-success"></i>
+                                    <div>
+                                        <strong>Tiền mặt khi nhận hàng</strong>
+                                        <div class="text-muted small">Thanh toán khi nhận được sản phẩm</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="payment-option" data-method="Thẻ ngân hàng" onclick="selectPaymentOption(this)">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-credit-card payment-option-icon text-primary"></i>
+                                    <div>
+                                        <strong>Thẻ ngân hàng</strong>
+                                        <div class="text-muted small">Thanh toán an toàn qua thẻ ngân hàng</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Thông tin đơn hàng</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th class="text-end">Giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${cartItems}">
+                                    <td th:text="${item.book.title}">Tên sách</td>
+                                    <td th:text="${item.quantity}">1</td>
+                                    <td class="text-end" th:text="${#numbers.formatDecimal(item.getTotalPrice(), 0, 'COMMA', 0, 'POINT') + ' đ'}">150,000 đ</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="fw-bold">Tổng cộng</td>
+                                    <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-success" onclick="submitOrder()">
+                        <i class="bi bi-check-circle me-1"></i>Xác nhận đặt hàng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -335,9 +437,80 @@
             }
         }
         
-        // Proceed to checkout - placeholder for now
+        // Proceed to checkout
         function proceedToCheckout() {
-            alert('Chức năng thanh toán đang được phát triển!');
+            // Hiển thị modal xác nhận đặt hàng
+            const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+            checkoutModal.show();
+        }
+        
+        // Chọn phương thức thanh toán
+        function selectPaymentOption(element) {
+            // Xóa class selected khỏi tất cả các phương thức thanh toán
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Thêm class selected vào phương thức được chọn
+            element.classList.add('selected');
+        }
+        
+        // Xác nhận đặt hàng
+        function submitOrder() {
+            const shippingAddress = document.getElementById('shippingAddress').value;
+            const paymentMethod = document.querySelector('.payment-option.selected').getAttribute('data-method');
+            
+            // Hiển thị trạng thái loading
+            const submitButton = document.querySelector('.modal-footer .btn-success');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+            
+            // Gọi API để xử lý đặt hàng
+            fetch('/api/cart/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'shippingAddress': shippingAddress,
+                    'paymentMethod': paymentMethod
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Tắt modal
+                const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                checkoutModal.hide();
+                
+                if (data.success) {
+                    // Hiển thị thông báo thành công
+                    showToast(data.message);
+                    
+                    // Cập nhật số lượng sản phẩm trong giỏ hàng
+                    document.getElementById('cartBadge').textContent = data.cartItemCount;
+                    
+                    // Tải lại trang sau 1 giây
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    // Hiển thị thông báo lỗi
+                    showToast(data.message);
+                    
+                    // Khôi phục nút submit
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Có lỗi xảy ra, vui lòng thử lại sau');
+                
+                // Khôi phục nút submit
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            });
         }
         
         // Show toast notification
